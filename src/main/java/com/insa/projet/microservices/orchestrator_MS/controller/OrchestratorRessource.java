@@ -22,7 +22,7 @@ public class OrchestratorRessource {
 		
 		restTemplate.postForObject("http://localhost:8080/temperature/init/"+String.valueOf(n), null, List.class);
 		restTemplate.postForObject("http://localhost:8080/window/init/"+String.valueOf(n), null, List.class);
-		restTemplate.postForObject("http://localhost:8080/NbrPeopleSensor/init/"+String.valueOf(n), null, List.class);
+		restTemplate.postForObject("http://localhost:8080/nbrPeopleSensor/init/"+String.valueOf(n), null, List.class);
 
 	}
 	
