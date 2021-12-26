@@ -2,6 +2,7 @@ package com.insa.projet.microservices.orchestrator_MS.controller;
 
 import java.util.List;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,7 +14,7 @@ import com.insa.projet.microservices.orchestrator_MS.model.temperature.Temperatu
 @RestController
 public class OrchestratorRessource {
 	
-	@PostMapping("/init/{n}")
+	@PostMapping(path="/init/{n}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public void initDataBase(@PathVariable int n) {
 		RestTemplate restTemplate=new RestTemplate();
 		
