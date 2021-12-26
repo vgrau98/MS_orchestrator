@@ -18,7 +18,7 @@ public class OrchestratorRessource {
 	public void initDataBase(@PathVariable int n) {
 		RestTemplate restTemplate=new RestTemplate();
 		
-		restTemplate.postForObject("http://localhost:8080/temperature/init/"+String.valueOf(n), null, null);
+		restTemplate.postForObject("http://localhost:8080/temperature/init/"+String.valueOf(n), null, List.class);
 	}
 	
 	@GetMapping("/list")
