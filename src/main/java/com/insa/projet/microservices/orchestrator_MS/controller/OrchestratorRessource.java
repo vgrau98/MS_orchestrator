@@ -58,7 +58,7 @@ public class OrchestratorRessource {
 	public void addTemperatureValue(@RequestBody SensorValue value,@PathVariable int room) {
 		RestTemplate restTemplate = new RestTemplate();
 		HttpEntity<SensorValue> httpEntity= new HttpEntity<SensorValue>(value, null);
-		restTemplate.postForObject("http://localhost:8080/temperature/addValueRoom/"+String.valueOf(room), httpEntity, null);
+		restTemplate.postForObject("http://localhost:8080/temperature/addValueRoom/"+String.valueOf(room), value, null);
 		
 	}
 	
