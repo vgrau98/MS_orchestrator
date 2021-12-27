@@ -58,7 +58,7 @@ public class OrchestratorRessource {
 	public void addTemperatureValue(@RequestBody SensorValue value,@PathVariable int room) {
 		RestTemplate restTemplate = new RestTemplate();
 		HttpEntity<SensorValue> httpEntity= new HttpEntity<SensorValue>(value, null);
-		restTemplate.postForObject("http://localhost:8080/temperature/addValueRoom/"+String.valueOf(room), value, null);
+		restTemplate.postForObject("http://localhost:8080/temperature/addValueRoom/"+String.valueOf(room), value, Object.class);
 		
 	}
 	
@@ -92,7 +92,7 @@ public class OrchestratorRessource {
 			
 			WindowState ws = new WindowState(windowState, System.currentTimeMillis());
 			HttpEntity<WindowState> httpEntity = new HttpEntity<>(ws, null);
-			restTemplate.postForObject("http://localhost:8080/window/addStateRoom/"+String.valueOf(room),httpEntity, null);
+			restTemplate.postForObject("http://localhost:8080/window/addStateRoom/"+String.valueOf(room),httpEntity, Object.class);
 			
 		}
 		
