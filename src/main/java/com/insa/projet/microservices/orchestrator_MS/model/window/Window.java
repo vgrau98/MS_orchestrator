@@ -1,23 +1,22 @@
 package com.insa.projet.microservices.orchestrator_MS.model.window;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Window {
 
 	private int id;
 	private int room;
-	private boolean state;
-
-	public Window() {
-		
-	}
-
-	public Window(int id, int room, boolean state) {
-		this.id = id;
-		this.room = room;
-		this.state = state;
-	}
+	private List<WindowState> states;
 
 	public int getId() {
 		return id;
+	}
+
+	public Window(int id, int room) {
+		this.id = id;
+		this.room = room;
+		states=new ArrayList<WindowState>();
 	}
 
 	public void setId(int id) {
@@ -31,13 +30,12 @@ public class Window {
 	public void setRoom(int room) {
 		this.room = room;
 	}
-
-	public boolean isState() {
-		return state;
+	
+	public List<WindowState> getStates(){
+		return states;
 	}
 
-	public void setState(boolean state) {
-		this.state = state;
+	public void addState(WindowState state) {
+		this.states.add(state);
 	}
-
 }
