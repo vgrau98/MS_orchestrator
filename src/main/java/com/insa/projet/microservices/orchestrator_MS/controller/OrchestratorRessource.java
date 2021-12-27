@@ -54,7 +54,7 @@ public class OrchestratorRessource {
 		return listSensor;
 	}
 	
-	@PostMapping(path="/addTemperatureValueRoom/{room]", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path="/addTemperatureValueRoom/{room}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public void addTemperatureValue(@RequestBody SensorValue value,@PathVariable int room) {
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.getForObject("http://localhost:8080/temperature/room/"+String.valueOf(room), TemperatureSensor.class).addValue(value);
