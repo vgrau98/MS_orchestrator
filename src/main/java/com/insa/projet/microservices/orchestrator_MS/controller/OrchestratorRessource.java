@@ -33,7 +33,7 @@ public class OrchestratorRessource {
 		//restTemplate.postForObject("http://localhost:8080/window/init/"+String.valueOf(n), null, List.class);
 		//restTemplate.postForObject("http://localhost:8080/nbrPeopleSensor/init/"+String.valueOf(n), null, List.class);
 
-		restTemplate.postForObject("http://TemperatureSensorsService/init/"+String.valueOf(n), null, List.class);
+		restTemplate.postForObject("http://TemperatureSensorsService/temperature/init/"+String.valueOf(n), null, List.class);
 		//restTemplate.postForObject("http://localhost:8080/window/init/"+String.valueOf(n), null, List.class);
 		//restTemplate.postForObject("http://localhost:8080/nbrPeopleSensor/init/"+String.valueOf(n), null, List.class);
 
@@ -42,7 +42,8 @@ public class OrchestratorRessource {
 	@GetMapping("/listTemperature")
 	public List<TemperatureSensor> getListTemperatureSensor(){
 		List<TemperatureSensor> listSensor;
-		listSensor=restTemplate.getForObject("http://localhost:8080/temperature/list", List.class);
+		//listSensor=restTemplate.getForObject("http://localhost:8080/temperature/list", List.class);
+		listSensor=restTemplate.getForObject("http://TemperatureSensorsService/temperature/list", List.class);
 		return listSensor;
 	}
 	
