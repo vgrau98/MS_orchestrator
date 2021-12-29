@@ -17,7 +17,6 @@ import com.insa.projet.microservices.orchestrator_MS.model.nbrPeople.*;
 import com.insa.projet.microservices.orchestrator_MS.model.temperature.*;
 import com.insa.projet.microservices.orchestrator_MS.model.window.*;
 
-import netscape.javascript.JSObject;
 
 @RestController
 public class OrchestratorRessource {
@@ -39,7 +38,7 @@ public class OrchestratorRessource {
 
 	}
 	
-	@GetMapping("/listTemperature")
+	@GetMapping(path="/listTemperature", produces=MediaType.APPLICATION_JSON_VALUE)
 	public List<TemperatureSensor> getListTemperatureSensor(){
 		List<TemperatureSensor> listSensor;
 		//listSensor=restTemplate.getForObject("http://localhost:8080/temperature/list", List.class);
