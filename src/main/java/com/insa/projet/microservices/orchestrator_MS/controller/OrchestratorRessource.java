@@ -6,6 +6,7 @@ import javax.print.attribute.standard.Media;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,10 +57,13 @@ public class OrchestratorRessource {
 		return listSensor;
 	}
 	
-	@PostMapping(path="/addTemperatureValueRoom/{room}", consumes = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path="/addTemperatureValueRoom/{room}", produces=MediaType.APPLICATION_JSON_VALUE,consumes = MediaType.APPLICATION_JSON_VALUE)
 	public void addTemperatureValue(@RequestBody SensorValue value,@PathVariable int room) {
-		HttpEntity<SensorValue> httpEntity= new HttpEntity<SensorValue>(value, null);
-		restTemplate.postForObject("http://TemperatureSensorsService/temperature/addValueRoom/"+String.valueOf(room), value, Object.class);
+		//RestTemplate restTemplate=new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<SensorValue> httpEntity= new HttpEntity<SensorValue>(value, headers);
+		restTemplate.postForObject("http://TemperatureSensorsService/temperature/addValueRoom/"+String.valueOf(room), httpEntity, Object.class);
 		
 	}
 	
