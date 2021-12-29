@@ -2,6 +2,7 @@ package com.insa.projet.microservices.orchestrator_MS.controller;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,19 +22,25 @@ import netscape.javascript.JSObject;
 @RestController
 public class OrchestratorRessource {
 	
+	@Autowired
+	private RestTemplate restTemplate;
+	
 	@PostMapping(path="/init/{n}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public void initDataBase(@PathVariable int n) {
-		RestTemplate restTemplate=new RestTemplate();
 		
-		restTemplate.postForObject("http://localhost:8080/temperature/init/"+String.valueOf(n), null, List.class);
-		restTemplate.postForObject("http://localhost:8080/window/init/"+String.valueOf(n), null, List.class);
-		restTemplate.postForObject("http://localhost:8080/nbrPeopleSensor/init/"+String.valueOf(n), null, List.class);
+		
+		//restTemplate.postForObject("http://localhost:8080/temperature/init/"+String.valueOf(n), null, List.class);
+		//restTemplate.postForObject("http://localhost:8080/window/init/"+String.valueOf(n), null, List.class);
+		//restTemplate.postForObject("http://localhost:8080/nbrPeopleSensor/init/"+String.valueOf(n), null, List.class);
+
+		restTemplate.postForObject("http://TemperatureSensorsService/init/"+String.valueOf(n), null, List.class);
+		//restTemplate.postForObject("http://localhost:8080/window/init/"+String.valueOf(n), null, List.class);
+		//restTemplate.postForObject("http://localhost:8080/nbrPeopleSensor/init/"+String.valueOf(n), null, List.class);
 
 	}
 	
 	@GetMapping("/listTemperature")
 	public List<TemperatureSensor> getListTemperatureSensor(){
-		RestTemplate restTemplate=new RestTemplate();
 		List<TemperatureSensor> listSensor;
 		listSensor=restTemplate.getForObject("http://localhost:8080/temperature/list", List.class);
 		return listSensor;
