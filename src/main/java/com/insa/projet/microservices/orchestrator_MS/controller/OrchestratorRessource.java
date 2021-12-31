@@ -45,9 +45,7 @@ public class OrchestratorRessource {
 	@GetMapping(path="/listTemperature", produces=MediaType.APPLICATION_JSON_VALUE)
 	public List<TemperatureSensor> getListTemperatureSensor(){
 		List<TemperatureSensor> listSensor;
-		RestTemplate restTemplate = new RestTemplate();
-		listSensor=restTemplate.getForObject("http://TemperatureSensorsService/list", List.class);
-		//listSensor=restTemplate.getForObject("http://TemperatureSensorsService/temperature/list", List.class);
+		listSensor=restTemplate.getForObject("http://temperatureSensorsService/temperature/list", List.class);
 		return listSensor;
 	}
 	
