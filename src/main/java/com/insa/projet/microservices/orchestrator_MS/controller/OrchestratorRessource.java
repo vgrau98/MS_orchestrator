@@ -1,13 +1,18 @@
 package com.insa.projet.microservices.orchestrator_MS.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.print.attribute.standard.Media;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,7 +45,9 @@ public class OrchestratorRessource {
 	@GetMapping(path="/listTemperature", produces=MediaType.APPLICATION_JSON_VALUE)
 	public List<TemperatureSensor> getListTemperatureSensor(){
 		List<TemperatureSensor> listSensor;
-		listSensor=restTemplate.getForObject("http://TemperatureSensorsService/temperature/list", List.class);
+		RestTemplate restTemplate = new RestTemplate();
+		listSensor=restTemplate.getForObject("http://TemperatureSensorsService/list", List.class);
+		//listSensor=restTemplate.getForObject("http://TemperatureSensorsService/temperature/list", List.class);
 		return listSensor;
 	}
 	
@@ -65,6 +72,41 @@ public class OrchestratorRessource {
 		HttpEntity<SensorValue> httpEntity= new HttpEntity<SensorValue>(value, headers);
 		restTemplate.postForObject("http://TemperatureSensorsService/temperature/addValueRoom/"+String.valueOf(room), httpEntity, Object.class);
 		
+	}
+	
+	@GetMapping(path="/updateTempDB")
+	public void updateTempDB() {
+		
+		RestTemplate restTemplateLocal=new RestTemplate();
+		JSONArray listUriSensors=new JSONArray();
+		
+		ResponseEntity<String> response;
+		HttpHeaders headers = new HttpHeaders();
+		
+		headers.set("X-M2M-Origin", "admin:admin");
+		headers.set("Content-Tyoe","application/json");
+		headers.set("accept", "application/json");
+		
+		HttpEntity<Void> httpEntity= new HttpEntity<>(headers);
+		
+		response=restTemplateLocal.exchange("http://localhost:8082/~/in-cse/in-name/?fu=1&ty=2&lbl=SensorType/Temperature", HttpMethod.GET, httpEntity, String.class);
+		
+		JSONObject content=new JSONObject(response.getBody().substring(response.getBody().indexOf('{'), response.getBody().indexOf('}')+1));
+		listUriSensors= (JSONArray) content.get("m2m:uril");
+		for(int i=0;i<listUriSensors.length();i++) {
+			response=restTemplateLocal.exchange("http://localhost:8082/~"+listUriSensors.getString(i)+"/DESCRIPTOR/la", HttpMethod.GET, httpEntity, String.class);
+			JSONObject descriptor=new JSONObject(response.getBody().substring(response.getBody().indexOf('{'), response.getBody().indexOf('}')+1));
+			JSONObject value_descriptor=new JSONObject(descriptor.getJSONObject("m2m:cin").getJSONObject("con"));
+			System.out.println(response);
+			
+			if(!restTemplate.getForObject("http://TemperatureSensorsService/temperature/sensorInID/"+String.valueOf(value_descriptor.getInt("ID")), boolean.class)) {
+				headers.setContentType(MediaType.APPLICATION_JSON);
+				TemperatureSensor sensor = new TemperatureSensor(value_descriptor.getInt("ID"), value_descriptor.getInt("room"));
+				restTemplate.postForObject("http://TemperatureSensorsService/temperature/addSensor/", new HttpEntity<TemperatureSensor>(sensor, headers), String.class);
+			}
+		}
+		
+		System.out.println(content.get("m2m:uril").getClass());
 	}
 	
 	@PostMapping(path="/ManageWindow/{outdoor_threshold}/{delta_temp_threshold}/{threshold_nbrPeople}")
@@ -96,6 +138,7 @@ public class OrchestratorRessource {
 			
 			WindowState ws = new WindowState(windowState, System.currentTimeMillis());
 			HttpEntity<WindowState> httpEntity = new HttpEntity<>(ws, null);
+			
 			restTemplate.postForObject("http://WindowManagementService/window/addStateRoom/"+String.valueOf(room),httpEntity, Object.class);
 			
 		}
