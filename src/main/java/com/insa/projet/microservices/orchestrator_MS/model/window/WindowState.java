@@ -9,6 +9,10 @@ public class WindowState {
 		this.state = state;
 		this.timestamp = timestamp;
 	}
+	
+	public WindowState(){
+		
+	}
 
 	public boolean isState() {
 		return state;

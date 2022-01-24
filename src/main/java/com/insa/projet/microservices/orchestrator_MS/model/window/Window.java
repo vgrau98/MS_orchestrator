@@ -12,6 +12,10 @@ public class Window {
 	public int getId() {
 		return id;
 	}
+	
+	public Window() {
+		
+	}
 
 	public Window(int id, int room) {
 		this.id = id;

@@ -5,6 +5,10 @@ public class NbrPeopleValue {
 	private int nbrPeople;
 	private long timestamp;
 	
+	public NbrPeopleValue() {
+		
+	}
+	
 	public NbrPeopleValue(int nbrPeople, long timestamp) {
 		this.nbrPeople = nbrPeople;
 		this.timestamp = timestamp;

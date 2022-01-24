@@ -5,6 +5,10 @@ public class SensorValue {
 	private String unit;
 	private long timestamp;
 	
+	public SensorValue() {
+		
+	}
+	
 	public SensorValue(double value, long timestamp, String unit) {
 
 		this.value = value;
