@@ -35,13 +35,28 @@ import com.insa.projet.microservices.orchestrator_MS.model.nbrPeople.*;
 import com.insa.projet.microservices.orchestrator_MS.model.temperature.*;
 import com.insa.projet.microservices.orchestrator_MS.model.window.*;
 
+/**
+ * 
+ * @author grau
+ * Exposes the key resources for the application. Uses three microservices to manage a database of temperature and people sensors and window actuators.
+ * The databases are built from the OM2M platform. 
+ */
 @RestController
 public class OrchestratorRessource {
 
 	@Autowired
 	private RestTemplate restTemplate;
 
+	/**
+	 * As soon as a new resource is created on OM2M, the orchestrator subscribes. 
+	 * This data structure has as key the uri of the subscription associated to the created resource (JSON object with id and room)
+	 */
 	Map<String, JSONObject> subRessources = new HashMap<String, JSONObject>();
+	
+	/**
+	 * As soon as a new window actuator is created on OM2M, the orchestrator is notified. 
+	 * This data structure has as key the uri of the window actuator on OM2M associated to the id and room of the window actuator
+	 */
 	Map<String, String> uriWindows = new HashMap<String, String>();
 
 	private double outdoorTempThreshold = 18;
@@ -49,6 +64,10 @@ public class OrchestratorRessource {
 	private double deltaTempThredhold = 5;
 	private boolean autoManagement = true;
 
+	/**
+	 * 
+	 * @return list of temperature sensors
+	 */
 	@GetMapping(path = "/listTemperature", produces = MediaType.APPLICATION_JSON_VALUE)
 	public List<TemperatureSensor> getListTemperatureSensor() {
 
@@ -62,6 +81,10 @@ public class OrchestratorRessource {
 		return listSensor;
 	}
 
+	/**
+	 * 
+	 * @return list of window actuators
+	 */
 	@GetMapping(path = "/listWindow", produces = MediaType.APPLICATION_JSON_VALUE)
 	public List<Window> getListWindow() {
 		List<Window> listWindow;
@@ -73,6 +96,11 @@ public class OrchestratorRessource {
 		return listWindow;
 	}
 
+	
+	/**
+	 * 
+	 * @return list of people sensors
+	 */
 	@GetMapping(path = "/listNbrPeopleSensor", produces = MediaType.APPLICATION_JSON_VALUE)
 	public List<NbrPeopleSensor> getListNbrPeopleSensor() {
 		List<NbrPeopleSensor> listSensor;
@@ -85,6 +113,11 @@ public class OrchestratorRessource {
 		return listSensor;
 	}
 
+	/**
+	 * 
+	 * @param value
+	 * @param room
+	 */
 	@PostMapping(path = "/addTemperatureValueRoom/{room}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public void addTemperatureValue(@RequestBody SensorValue value, @PathVariable int room) {
 		// RestTemplate restTemplate=new RestTemplate();
@@ -96,6 +129,13 @@ public class OrchestratorRessource {
 
 	}
 
+	/**
+	 * 
+	 * @param nbrPeopleThreshold
+	 * @param outTempThreshold
+	 * @param deltaTempThreshold
+	 * @param autoManagement
+	 */
 	@PutMapping(path = "/setRules/{nbrPeopleThreshold}/{outTempThreshold}/{deltaTempThreshold}/{autoManagement}")
 	public void setManagementRules(@PathVariable int nbrPeopleThreshold, @PathVariable double outTempThreshold,
 			@PathVariable double deltaTempThreshold, @PathVariable boolean autoManagement) {
@@ -111,6 +151,11 @@ public class OrchestratorRessource {
 
 	}
 
+	/**
+	 * Create a subscription on OM2M at the CSE level to be notified as soon as a new resource is created. When a new resource
+	 * is created the function subscribetoRssource is called
+	 * 
+	 */
 	@PostMapping(path = "/initOM2M")
 	public void initOM2M() {
 
@@ -140,6 +185,10 @@ public class OrchestratorRessource {
 				String.class);
 	}
 
+	/**
+	 * Called as soon as a new resource is created on OM2M. Subscribe to the newly resource for retrieve new data. 
+	 * @param request, a notification response
+	 */
 	@PostMapping(path = "/subscribeToRessource", consumes = MediaType.ALL_VALUE)
 	public void subscribeToRessource(@RequestBody String request) {
 
@@ -147,17 +196,15 @@ public class OrchestratorRessource {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		JSONObject json_request = new JSONObject(request);
-		System.out.println(json_request.toString());
-
 		JSONObject con = json_request.getJSONObject("m2m:sgn");
 
+		//The verification package is ignored
 		if (!(con.has("m2m:vrq"))) {
 
 			JSONObject con_bis = con.getJSONObject("m2m:nev").getJSONObject("m2m:rep").getJSONObject("m2m:ae");
 
+			//Retrieve label of the created resource
 			JSONObject lbl = new JSONObject(con_bis.getJSONArray("lbl").getString(0));
-			System.out.println(con_bis.getJSONArray("lbl").getString(0));
-			System.out.println(lbl.toString());
 			String ressource_type = lbl.getString("RessourceType");
 
 			int id = 0;
@@ -166,6 +213,7 @@ public class OrchestratorRessource {
 			String const_nu = "http://localhost:8083/";
 			String nu = null;
 
+			//According to resource type the orchestrator subscribes to the resource with diferent nu values. 
 			switch (ressource_type) {
 
 			case "People":
@@ -198,8 +246,6 @@ public class OrchestratorRessource {
 				restTemplate.postForObject("http://WindowManagementService/window/addWindow/",
 						new HttpEntity<Window>(window, headers), String.class);
 
-				System.out.println("bonjour");
-
 				nu = const_nu + "receiveWindowData";
 				break;
 			}
@@ -207,7 +253,7 @@ public class OrchestratorRessource {
 			if (!(nu == null)) {
 
 				try {
-					Thread.sleep(500);
+					Thread.sleep(500); //Wait until the container DATA is created under the new resource
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -230,6 +276,8 @@ public class OrchestratorRessource {
 
 				HttpEntity<String> httpEntity = new HttpEntity<String>(body.toString(), headers);
 
+				
+				//Create in the DATA container
 				response = restTemplateLocal.exchange(
 						"http://localhost:8082/~/in-cse/in-name/" + con_bis.getString("rn") + "/DATA", HttpMethod.POST,
 						httpEntity, String.class);
@@ -238,14 +286,15 @@ public class OrchestratorRessource {
 				idRoom.put("id", id);
 				idRoom.put("room", room);
 
-				System.out.println(ressource_type.equals("Window"));
 				if (ressource_type.equals("Window")) {
+					
+					//register uri according to the id and room of the actuator
 					uriWindows.put(idRoom.toString(),
 							"http://localhost:8082/~/in-cse/in-name/" + con_bis.getString("rn") + "/DATA");
-					System.out.println(uriWindows.toString());
 
 				}
 
+				//register uri of the subscription 
 				subRessources.put(new JSONObject(response.getBody()).getJSONObject("m2m:sub").getString("ri"), idRoom);
 
 			}
@@ -254,12 +303,15 @@ public class OrchestratorRessource {
 
 	}
 
+	/**
+	 * Is called as soon as a new temperature data is posted. The new data is stored in the Temperature MS database. If automanagement activated, window actuators
+	 * are managed
+	 * @param request
+	 */
 	@PostMapping(path = "/receiveTemperatureData", consumes = MediaType.ALL_VALUE)
 	public void receiveTemperatureData(@RequestBody String request) {
 
 		JSONObject json_request = new JSONObject(request);
-
-		System.out.println(request.toString());
 		JSONObject con = json_request.getJSONObject("m2m:sgn");
 
 		if (!(con.has("m2m:vrq"))) {
@@ -282,11 +334,14 @@ public class OrchestratorRessource {
 										con_bis.getLong("timestamp"), con_bis.getString("unit")), headers),
 								String.class);
 
+				//if automatic window management
 				if (autoManagement) {
 
+					//room -1 corresponds to outdoor environment. Room for outdoor temperature sensor. We check all window actuator
 					if (room != -1) {
 						windowManagerRoom(outdoorTempThreshold, deltaTempThredhold, nbrPeopleThreshold, room);
 					} else {
+						//We check only the specified room window actuator
 						windowManager(outdoorTempThreshold, deltaTempThredhold, nbrPeopleThreshold);
 					}
 				}
@@ -296,6 +351,10 @@ public class OrchestratorRessource {
 
 	}
 
+	/**
+	 * Idem that for temperature data
+	 * @param request
+	 */
 	@PostMapping(path = "/receivePeopleData", consumes = MediaType.ALL_VALUE)
 	public void receivePeopleData(@RequestBody String request) {
 
@@ -330,6 +389,10 @@ public class OrchestratorRessource {
 
 	}
 
+	/**
+	 * Idem that for temperature data
+	 * @param request
+	 */
 	@PostMapping(path = "/receiveWindowData", consumes = MediaType.ALL_VALUE)
 	public void receiveWindowData(@RequestBody String request) {
 
@@ -360,6 +423,12 @@ public class OrchestratorRessource {
 
 	}
 
+	/**
+	 * Checks according to the threshold values passed in parameters the actions to give to the windows. The actions are posted on OM2M. He all room are checked
+	 * @param outdoor_threshold
+	 * @param delta_temp_threshold
+	 * @param threshold_nbrPeople
+	 */
 	@PostMapping(path = "/ManageWindow/{outdoor_threshold}/{delta_temp_threshold}/{threshold_nbrPeople}")
 	public void windowManager(@PathVariable double outdoor_threshold, @PathVariable double delta_temp_threshold,
 			@PathVariable int threshold_nbrPeople) {
@@ -426,6 +495,13 @@ public class OrchestratorRessource {
 
 	}
 
+	/**
+	 * As the previous function but only for one room
+	 * @param outdoor_threshold
+	 * @param delta_temp_threshold
+	 * @param threshold_nbrPeople
+	 * @param room
+	 */
 	@PostMapping(path = "/ManageWindowRoom/{room}/{outdoor_threshold}/{delta_temp_threshold}/{threshold_nbrPeople}")
 	public void windowManagerRoom(@PathVariable double outdoor_threshold, @PathVariable double delta_temp_threshold,
 			@PathVariable int threshold_nbrPeople, @PathVariable int room) {
@@ -472,6 +548,11 @@ public class OrchestratorRessource {
 
 	}
 	
+	/**
+	 * add a new state to a window actuator
+	 * @param room
+	 * @param state
+	 */
 	@PutMapping(path="/changeWindowState/{room}/{state}")
 	public void changeStateWindow(@PathVariable int room,@PathVariable boolean state) {
 		Window window = restTemplate.getForObject("http://WindowManagementService/window/room/" + String.valueOf(room),
@@ -482,6 +563,13 @@ public class OrchestratorRessource {
 
 	}
 
+	/**
+	 * Post a actuator action to OM2M. For instance open or close for a window
+	 * @param actuatorType
+	 * @param targetID
+	 * @param targetRoom
+	 * @param con
+	 */
 	public void postActionOM2M(String actuatorType, int targetID, int targetRoom, String con) {
 
 		ResponseEntity<String> response;
